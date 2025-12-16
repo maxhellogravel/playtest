@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="game">
+      <h1>Tic Tac Toe</h1>
+      <div id="status" class="status" role="status" aria-live="polite">Your turn: place an O</div>
+      <div class="board" role="grid" aria-label="Tic Tac Toe board">
+        <button class="cell" type="button" data-index="0" aria-label="Row 1 Column 1"></button>
+        <button class="cell" type="button" data-index="1" aria-label="Row 1 Column 2"></button>
+        <button class="cell" type="button" data-index="2" aria-label="Row 1 Column 3"></button>
+        <button class="cell" type="button" data-index="3" aria-label="Row 2 Column 1"></button>
+        <button class="cell" type="button" data-index="4" aria-label="Row 2 Column 2"></button>
+        <button class="cell" type="button" data-index="5" aria-label="Row 2 Column 3"></button>
+        <button class="cell" type="button" data-index="6" aria-label="Row 3 Column 1"></button>
+        <button class="cell" type="button" data-index="7" aria-label="Row 3 Column 2"></button>
+        <button class="cell" type="button" data-index="8" aria-label="Row 3 Column 3"></button>
+      </div>
+      <button id="reset" class="reset" type="button">Reset</button>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

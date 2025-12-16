@@ -1,6 +1,16 @@
 const cells = Array.from(document.querySelectorAll(".cell"));
 const statusEl = document.getElementById("status");
 const resetBtn = document.getElementById("reset");
+const gravelModeBtn = document.getElementById("gravel-mode");
+
+let gravelMode = false;
+
+function getSymbol(player) {
+  if (gravelMode) {
+    return player === "O" ? "🪨" : "🚛";
+  }
+  return player;
+}
 
 const winningCombos = [
   [0, 1, 2],
@@ -22,12 +32,12 @@ let gameOver = false;
 function renderBoard() {
   cells.forEach((cell, index) => {
     const mark = board[index];
-    cell.textContent = mark ? mark : "";
+    cell.textContent = mark ? getSymbol(mark) : "";
     cell.classList.toggle("o", mark === "O");
     cell.classList.toggle("x", mark === "X");
     const row = Math.floor(index / 3) + 1;
     const col = (index % 3) + 1;
-    const markLabel = mark ? ` (${mark})` : "";
+    const markLabel = mark ? ` (${getSymbol(mark)})` : "";
     cell.setAttribute("aria-label", `Row ${row} Column ${col}${markLabel}`);
   });
 }
@@ -91,7 +101,7 @@ function computerMove() {
   if (result) {
     endGame(result);
   } else {
-    statusEl.textContent = "Your turn: place an O";
+    statusEl.textContent = `Your turn: place a ${getSymbol("O")}`;
   }
 }
 
@@ -147,7 +157,7 @@ function takeAnyOpenSpot() {
 function resetGame() {
   board = Array(9).fill(null);
   gameOver = false;
-  statusEl.textContent = "Your turn: place an O";
+  statusEl.textContent = `Your turn: place a ${getSymbol("O")}`;
   renderBoard();
 }
 
@@ -156,5 +166,14 @@ cells.forEach((cell, index) => {
 });
 
 resetBtn.addEventListener("click", resetGame);
+
+gravelModeBtn.addEventListener("click", () => {
+  gravelMode = !gravelMode;
+  gravelModeBtn.textContent = gravelMode ? "Normal Mode" : "Hello Gravel Mode";
+  renderBoard();
+  if (!gameOver) {
+    statusEl.textContent = `Your turn: place a ${getSymbol("O")}`;
+  }
+});
 
 renderBoard();

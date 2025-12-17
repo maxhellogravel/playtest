@@ -106,6 +106,30 @@ body {
   opacity: 0.95;
 }
 
+.gravel-mode {
+  width: 100%;
+  padding: 10px 14px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.gravel-mode:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+}
+
+.gravel-mode:active {
+  transform: translateY(0);
+  opacity: 0.95;
+}
+
 @media (max-width: 420px) {
   .game {
     padding: 20px;

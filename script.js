@@ -294,16 +294,34 @@ function renderSickoBoard() {
   });
 }
 
-// Handle a move in Sicko Mode
+// Handle a move in Sicko Mode (player's turn only)
 function handleSickoMove(boardIndex, cellIndex) {
+  // Only allow moves on player's turn
+  if (sickoCurrentPlayer !== "O") return;
+
   // Validate the move
   if (sickoGameOver) return;
   if (sickoBoardWinners[boardIndex]) return; // Board already won
   if (sickoBoards[boardIndex][cellIndex]) return; // Cell already taken
   if (sickoActiveBoard !== null && sickoActiveBoard !== boardIndex) return; // Wrong board
 
-  // Make the move
-  sickoBoards[boardIndex][cellIndex] = sickoCurrentPlayer;
+  // Make the player's move
+  makeSickoMove(boardIndex, cellIndex, "O");
+
+  // If game isn't over, trigger computer move
+  if (!sickoGameOver) {
+    sickoStatusEl.textContent = "Computer thinking...";
+    setTimeout(() => {
+      if (!sickoGameOver) {
+        sickoComputerMove();
+      }
+    }, COMPUTER_DELAY_MS);
+  }
+}
+
+// Make a move and update game state
+function makeSickoMove(boardIndex, cellIndex, player) {
+  sickoBoards[boardIndex][cellIndex] = player;
 
   // Check if this move won the mini-board
   const boardResult = checkWinner(sickoBoards[boardIndex]);
@@ -329,7 +347,6 @@ function handleSickoMove(boardIndex, cellIndex) {
   }
 
   // Determine the next active board
-  // The cell index determines which board the opponent must play on
   const nextBoard = cellIndex;
 
   // If that board is already won/drawn, opponent can play anywhere
@@ -346,22 +363,123 @@ function handleSickoMove(boardIndex, cellIndex) {
   updateSickoStatus();
 }
 
+// Get all valid moves for the current state
+function getSickoValidMoves() {
+  const moves = [];
+  const boardsToCheck = sickoActiveBoard !== null ? [sickoActiveBoard] : [0,1,2,3,4,5,6,7,8];
+
+  for (const boardIndex of boardsToCheck) {
+    if (sickoBoardWinners[boardIndex]) continue; // Skip won boards
+    for (let cellIndex = 0; cellIndex < 9; cellIndex++) {
+      if (!sickoBoards[boardIndex][cellIndex]) {
+        moves.push({ boardIndex, cellIndex });
+      }
+    }
+  }
+  return moves;
+}
+
+// Find a winning move for a player in a specific mini-board
+function findSickoWinningMoveInBoard(boardIndex, player) {
+  const miniBoard = sickoBoards[boardIndex];
+  for (const [a, b, c] of winningCombos) {
+    const line = [miniBoard[a], miniBoard[b], miniBoard[c]];
+    const marks = line.filter(cell => cell === player).length;
+    const empties = line.filter(cell => !cell).length;
+    if (marks === 2 && empties === 1) {
+      if (!miniBoard[a]) return a;
+      if (!miniBoard[b]) return b;
+      if (!miniBoard[c]) return c;
+    }
+  }
+  return null;
+}
+
+// Computer AI for Sicko Mode
+function sickoComputerMove() {
+  if (sickoGameOver) return;
+
+  const validMoves = getSickoValidMoves();
+  if (validMoves.length === 0) return;
+
+  let bestMove = null;
+
+  // Priority 1: Win a mini-board
+  for (const move of validMoves) {
+    const winCell = findSickoWinningMoveInBoard(move.boardIndex, "X");
+    if (winCell === move.cellIndex) {
+      bestMove = move;
+      break;
+    }
+  }
+
+  // Priority 2: Block player from winning a mini-board
+  if (!bestMove) {
+    for (const move of validMoves) {
+      const blockCell = findSickoWinningMoveInBoard(move.boardIndex, "O");
+      if (blockCell === move.cellIndex) {
+        bestMove = move;
+        break;
+      }
+    }
+  }
+
+  // Priority 3: Try to play in a strategic position
+  // Prefer moves that send opponent to a won/drawn board (giving us free choice next)
+  if (!bestMove) {
+    for (const move of validMoves) {
+      if (sickoBoardWinners[move.cellIndex]) {
+        bestMove = move;
+        break;
+      }
+    }
+  }
+
+  // Priority 4: Take center of a mini-board if available
+  if (!bestMove) {
+    for (const move of validMoves) {
+      if (move.cellIndex === 4) {
+        bestMove = move;
+        break;
+      }
+    }
+  }
+
+  // Priority 5: Take a corner
+  if (!bestMove) {
+    const corners = [0, 2, 6, 8];
+    for (const move of validMoves) {
+      if (corners.includes(move.cellIndex)) {
+        bestMove = move;
+        break;
+      }
+    }
+  }
+
+  // Fallback: Random valid move
+  if (!bestMove) {
+    bestMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+  }
+
+  makeSickoMove(bestMove.boardIndex, bestMove.cellIndex, "X");
+}
+
 // Update the status message
 function updateSickoStatus(result) {
   if (result === "O") {
-    sickoStatusEl.textContent = "Player O wins!";
+    sickoStatusEl.textContent = "You win!";
   } else if (result === "X") {
-    sickoStatusEl.textContent = "Player X wins!";
+    sickoStatusEl.textContent = "Computer wins!";
   } else if (result === "draw") {
     sickoStatusEl.textContent = "It's a draw!";
   } else {
-    let msg = `Player ${sickoCurrentPlayer}'s turn`;
+    let msg = "Your turn";
     if (sickoActiveBoard === null) {
       msg += " - pick any square";
     } else {
       const row = Math.floor(sickoActiveBoard / 3) + 1;
       const col = (sickoActiveBoard % 3) + 1;
-      msg += ` - must play in board (${row},${col})`;
+      msg += ` - play in board (${row},${col})`;
     }
     sickoStatusEl.textContent = msg;
   }
